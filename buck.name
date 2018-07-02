@@ -1,0 +1,6 @@
+  - V,66b972b3fbb1d72455f64614d2be04a6167cfee065ca488c3232774848c2fe77,e91fc7ae6f4a2d7041204996e3317c84363b04a09c3d720371496ff361ce50b
+  - create cat buck
+  - grow 100 `nip
+  - set buck.desc: |
+      white himalayan, with a lion cut.
+      so cute it hurts.

@@ -1,0 +1,6 @@
+  - V,1a9605f2d0942b7325ced696742c9575690b2c7abdc70522caee49d6660fcc40,dc5da2db4ad8d984f69f2a3b06781dce05d788cdbfc60d66301474989e9a7f15
+  - create cat lex
+  - grow 100 `nip
+  - set lex.desc: |
+      black, with golden eyes.
+      an attitude to match.
