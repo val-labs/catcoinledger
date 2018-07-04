@@ -1,1 +1,1 @@
-import ws; ws.main()
+import ws;ws.main()
