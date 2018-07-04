@@ -4,12 +4,12 @@ Architecture
 Component Parts
 ---------------
 
-1. Data Store / Verifier
+1) Data Store / Verifier
   a. Consists of passive data store
   b. Indexed by blockid and block number
   c. store/forward model.
 
-2. Pub/Sub Network
+2) Pub/Sub Network
 
   a. Runs locally
   b. Is the plumbing to the larger peer2peer network
@@ -18,7 +18,7 @@ Component Parts
 Current Implementation
 ----------------------
 
-1. Data Store = The file system.
+1) Data Store = The file system.
   a. Probably not scalable for long term
   b. . . . But it'll get us by for now.
   c. "search" consists of GETs
@@ -28,7 +28,7 @@ Current Implementation
     iv. asking for the last block also uses the verifier to resolve any ambiguity if there are multiple chains of hte same length to choose from.
   d. writing consist of PUTs
 
-2. Verifier
+2) Verifier
   a. Uses the datastore directly.
   b. asking for the last block
     i. also uses the verifier to resolve any ambiguity
@@ -43,10 +43,10 @@ Current Implementation
       d. anyone can grab the entire transaction and include it
       e. but if anything changes, the signature won't match.
 
-2. Pub/Sub network
+2) Pub/Sub network
   a. let's just use peer2peer from PyPi for now
 
-3. Combining transactions
+3) Combining transactions
   a. Individual transactions are actually single record blocks.
   b. Probably has super-low difficulty.
   c. Meant to be "stolen" and processed.
