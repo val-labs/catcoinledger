@@ -23,9 +23,9 @@ Current Implementation
   b. . . . But it'll get us by for now.
   c. "search" consists of GETs
     i. blockid is one way to search
-    i. a search for block numbers >> list of block ids
-    i. you can also just search for the "last" block.
-    i. asking for the last block also uses the verifier to resolve any ambiguity if there are multiple chains of hte same length to choose from.
+    ii. a search for block numbers >> list of block ids
+    iii. you can also just search for the "last" block.
+    iv. asking for the last block also uses the verifier to resolve any ambiguity if there are multiple chains of hte same length to choose from.
   d. writing consist of PUTs
 
 #) Verifier
