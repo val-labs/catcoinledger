@@ -23,7 +23,6 @@ Current Implementation
     i. blockid is one way to search
     ii. a search for block numbers >> list of block ids
     iii. you can also just search for the "last" block.
-    iv. asking for the last block also uses the verifier to resolve any ambiguity if there are multiple chains of hte same length to choose from.
   d. writing consist of PUTs
 2) Verifier
   a. Uses the datastore directly.
@@ -41,7 +40,7 @@ Current Implementation
       e. but if anything changes, the signature won't match.
 3) Pub/Sub network
   a. let's just use peer2peer from PyPi for now
-  b. `pip install peer2peer` will install
+  b. "pip install peer2peer" will install
 4) Combining transactions
   a. Individual transactions are actually single record blocks.
   b. Probably has super-low difficulty.
