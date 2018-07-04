@@ -41,6 +41,7 @@ Current Implementation
       e. but if anything changes, the signature won't match.
 3) Pub/Sub network
   a. let's just use peer2peer from PyPi for now
+  b. `pip install peer2peer` will install
 4) Combining transactions
   a. Individual transactions are actually single record blocks.
   b. Probably has super-low difficulty.
