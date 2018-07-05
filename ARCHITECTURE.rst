@@ -55,3 +55,26 @@ Current Implementation
     iv. it's possible THAT block will get overwritten too
     v. in that case, your transaction may not go through.
     vi. Retry if no one processes your transaction after 5 minutes
+
+Cans of Food
+-----------
+
+- So, the network runs on cat food.
+
+- How do we get cans of food?
+
+  a. Mining a block gives you the ability to make a can of food.
+  b. How much food do you get?  To start, one can per block.
+  c. How much cat food do you need to get a message through?
+    i. depends on what the network will accept
+
+- Over time, the blocks will award more cans of food
+       
+- Cans of food are divisible.
+  - smallest can = 1 billionth of a can (0.000,000,001)
+
+  - DONT STORE AS FLOATING POINT.
+  - USE FIXED POINT
+  - DONT LOSE ANY PRECISION
+
+  
