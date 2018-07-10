@@ -28,8 +28,7 @@ def test():
     print "CREATE WALLET AREA"
     mkdir('wallets')
     mkdir('s/b')
-    pid = spawn('PYTHONPATH=.. python -mws')
-    print "CREATE GENESIS BLOCK", pid
+    print "CREATE GENESIS BLOCK"
     blkno = 0
     parent_hashstr = '0'*40
     inp_name = 'genesis.txt'
@@ -41,9 +40,20 @@ Hear me roar!
 """)
     hashstr = hashfile(inp_name)
     # do this otherwise saving the genesis block will be an error
-    unsafe_save_block(inp_name, blkno, parent_hashstr, hashstr)
+    unsafe_store_block(inp_name, blkno, parent_hashstr, hashstr)
     parent_hashstr = hashstr
     blkno += 1
+
+    print "Starting WebServer..."
+    pid = spawn('PYTHONPATH=.. python -mws','pid1', '.ws')
+    print "server pid =", pid
+
+    print "Starting Peer2PeerServer..."
+    pid2 = spawn('PYTHONPATH=.. python '+
+                 '../peer2peer.py serve --port 5454', 'pid2', '.p2p')
+    print "server pid =", pid2
+
+    time.sleep(3)
 
     # let's create a new identity (or two)
     print "CREATE IDENTITY"
@@ -56,7 +66,7 @@ Hear me roar!
   - Meow: Meow?  Is anyone out there?
 """,kfile,inp_name)
     hashstr = hashfile(inp_name)
-    save_block(inp_name, blkno, parent_hashstr, hashstr)
+    store_and_forward_block(inp_name, blkno, parent_hashstr, hashstr)
     parent_hashstr = hashstr
     blkno += 1
 
@@ -70,11 +80,12 @@ Hear me roar!
   - Purr: I am out here, @Fluffy!
 """,kfile,inp_name)
     hashstr = hashfile(inp_name)
-    save_block(inp_name, blkno, parent_hashstr, hashstr)
+    store_and_forward_block(inp_name, blkno, parent_hashstr, hashstr)
     parent_hashstr = hashstr
     blkno += 1
     
     system('tree -sa')
+    time.sleep(600000)
     pass
 
 if __name__=='__main__': test()

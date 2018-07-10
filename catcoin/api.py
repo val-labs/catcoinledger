@@ -1,4 +1,5 @@
 import os, sys, time, hashlib
+import peer2peer
 
 def hashfile(filename):
     h = hashlib.new('ripemd160')
@@ -14,9 +15,9 @@ def mkdir(path):
         os.system('rm -fr '+ path)
         os.makedirs(path)
         
-def spawn(cmd, filename='pid'):
+def spawn(cmd, filename='pid', suffix=''):
     try:
-        suffix = " 1>stdout 2>stderr"+' & echo $$ >'
+        suffix = " 1>stdout%s 2>stderr%s & echo $$ >" % (suffix,suffix)
         print os.system(cmd + suffix + filename)
         return int(open(filename).read())
     finally:
@@ -31,18 +32,26 @@ def verify_block(filename, blkno, parent, hashstr):
         raise "CANT SAVE A GENESIS BLOCK"
     return True
 
-def unsafe_save_block(filename, blkno, parent, hashstr):
-    print "unsafe_save_block"+repr((filename, blkno, parent, hashstr))
+def unsafe_store_block(filename, blkno, parent, hashstr):
+    print "unsafe_store_block"+repr((filename, blkno, parent, hashstr))
     direc = 's/b/%s/%s' % (blkno, parent)
     try:    os.makedirs(direc)
     except: pass
     system('mv %s %s/%s' % (filename, direc, hashstr))
+    return ('%s/%s' % (direc, hashstr))
 
-def save_block(filename, blkno, parent, hashstr):
-    print "save_block"+repr((filename, blkno, parent, hashstr))
+def store_block(filename, blkno, parent, hashstr):
+    print "store_block"+repr((filename, blkno, parent, hashstr))
     if not verify_block(filename, blkno, parent, hashstr):
         raise Exception("Bad Block")
-    return unsafe_save_block(filename, blkno, parent, hashstr)
+    return unsafe_store_block(filename, blkno, parent, hashstr)
+
+def store_and_forward_block(filename, blkno, parent, hashstr):
+    print "store_and_forward_block"+repr((filename, blkno, parent, hashstr))
+    filename = store_block(filename, blkno, parent, hashstr)
+    print "FORWARD ", filename
+    peer2peer.pub(':5454', 'blocks', filename)
+    return filename
 
 def sign_xtn(msg, keyfile, filename):
     filename0 = filename+'.inp'
