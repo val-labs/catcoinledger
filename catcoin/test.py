@@ -1,36 +1,21 @@
 """
-What's the test conversation here?
-
-x. Install Software
-x. Run Software
-
-x. Look at the genesis block, find id?
-x. Get rest of chain (upgrade / whats the verb here?)
-
-x. Get BlockIDs for block N, descended from <x, y, z> list
-x. Get all those blocks
-x. Verify them, discard those you don't like, forward the rest
-x. if no more blocks, we're up to date (on that chain)
-x. if the blocks are less than a minute old, we're kind of up to date.
-
-x. Create Simple Transaction
-x. Sign It
-x. Publish It
 
 """
 import os, sys, time, hashlib
 from catcoin.api import *
 
-def sign_and_send_xtn(msg,kfile,blkno,parent_hashstr):
-    inp_name = 'msg1'
-    sign_xtn(msg,kfile, inp_name)
+def mine_block(blkno, parent_hashstr, pattern='msg1'):
     bid = 'b/%s/%s' % (blkno, parent_hashstr)
     with open('msgx','w') as fw:
         fw.write('- %s\n' % bid)
-    system('cat msg1 >>msgx')
+    system('cat %s >>msgx' % pattern)
     hashstr = hashfile('msgx')
     store_and_forward_block('msgx', blkno, parent_hashstr, hashstr)
     return blkno+1, hashstr
+
+def sign_and_send_xtn(msg,kfile,blkno,parent_hashstr):
+    sign_xtn(msg,kfile,'msg1')
+    return mine_block(blkno, parent_hashstr)
 
 def test():
     blkno, parent_hashstr = init_chain('test.data')
