@@ -88,6 +88,6 @@ def start_chain():
 
     print "Starting Peer2PeerServer..."
     pid2 = spawn('PYTHONPATH=.. python '+
-                 '../peer2peer.py serve --port 5454', 'pid2', '.p2p')
+                 '../peer2peer/peer2peer.py serve --port 5454', 'pid2', '.p2p')
     print "server pid =", pid2
     return [pid, pid2]
