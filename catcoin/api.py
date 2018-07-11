@@ -58,3 +58,36 @@ def sign_xtn(msg, keyfile, filename):
     with open(filename0,'w') as fw:  fw.write(msg)
     system('head -1<%s|cat - %s|pkcrypt sign %s -h >>%s'
            % (keyfile,filename0,keyfile,filename))
+
+def init_chain(name, data=None):
+    print "START CHAIN"
+    mkdir(name)
+    os.chdir(name)
+    print "CREATE WALLET AREA"
+    mkdir('wallets')
+    mkdir('s/b')
+    print "CREATE GENESIS BLOCK"
+    blkno = 0
+    parent_hashstr = '0'*40
+    inp_name = 'genesis.txt'
+    with open(inp_name,'w') as fw:
+        fw.write(data or """
+Mee-OW!
+I am cat!
+Hear me roar!
+""")
+    hashstr = hashfile(inp_name)
+    # do this otherwise saving the genesis block will be an error
+    unsafe_store_block(inp_name, 0, parent_hashstr, hashstr)
+    return 1, hashstr
+
+def start_chain():
+    print "Starting WebServer..."
+    pid = spawn('PYTHONPATH=.. python -mws','pid1', '.ws')
+    print "server pid =", pid
+
+    print "Starting Peer2PeerServer..."
+    pid2 = spawn('PYTHONPATH=.. python '+
+                 '../peer2peer.py serve --port 5454', 'pid2', '.p2p')
+    print "server pid =", pid2
+    return [pid, pid2]

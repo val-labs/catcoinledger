@@ -21,69 +21,44 @@ x. Publish It
 import os, sys, time, hashlib
 from catcoin.api import *
 
+def sign_and_send_xtn(msg,kfile,blkno,parent_hashstr):
+    inp_name = 'msg1'
+    sign_xtn(msg,kfile,inp_name)
+    hashstr = hashfile(inp_name)
+    store_and_forward_block(inp_name, blkno, parent_hashstr, hashstr)
+    return blkno+1, hashstr
+
 def test():
     print "START TEST"
-    mkdir('test.data')
-    os.chdir('test.data')
-    print "CREATE WALLET AREA"
-    mkdir('wallets')
-    mkdir('s/b')
-    print "CREATE GENESIS BLOCK"
-    blkno = 0
-    parent_hashstr = '0'*40
-    inp_name = 'genesis.txt'
-    with open(inp_name,'w') as fw:
-        fw.write("""
-Mee-OW!
-I am cat!
-Hear me roar!
-""")
-    hashstr = hashfile(inp_name)
-    # do this otherwise saving the genesis block will be an error
-    unsafe_store_block(inp_name, blkno, parent_hashstr, hashstr)
-    parent_hashstr = hashstr
-    blkno += 1
-
-    print "Starting WebServer..."
-    pid = spawn('PYTHONPATH=.. python -mws','pid1', '.ws')
-    print "server pid =", pid
-
-    print "Starting Peer2PeerServer..."
-    pid2 = spawn('PYTHONPATH=.. python '+
-                 '../peer2peer.py serve --port 5454', 'pid2', '.p2p')
-    print "server pid =", pid2
-
+    blkno, parent_hashstr = init_chain('test.data')
+    start_chain()
     time.sleep(3)
 
     # let's create a new identity (or two)
     print "CREATE IDENTITY"
     system('pkcrypt genpair >id.1')
 
-    inp_name = 'msg1'
-    kfile = 'id.1'
-    sign_xtn("""\
+    blkno, parent_hashstr = sign_and_send_xtn("""\
   - Name:= Fluffy
   - Meow: Meow?  Is anyone out there?
-""",kfile,inp_name)
-    hashstr = hashfile(inp_name)
-    store_and_forward_block(inp_name, blkno, parent_hashstr, hashstr)
-    parent_hashstr = hashstr
-    blkno += 1
+""",'id.1',blkno,parent_hashstr)
 
     print "CREATE ANOTHER IDENTITY"
     system('pkcrypt genpair >id.2')
 
-    inp_name = 'msg2'
-    kfile = 'id.2'
-    sign_xtn("""\
+    blkno, parent_hashstr = sign_and_send_xtn("""\
   - Name:= Patches
   - Purr: I am out here, @Fluffy!
-""",kfile,inp_name)
-    hashstr = hashfile(inp_name)
-    store_and_forward_block(inp_name, blkno, parent_hashstr, hashstr)
-    parent_hashstr = hashstr
-    blkno += 1
-    
+""",'id.2',blkno,parent_hashstr)
+
+    blkno, parent_hashstr = sign_and_send_xtn("""\
+  - Meow: Tell me more, @Patches!
+""",'id.1',blkno,parent_hashstr)
+
+    blkno, parent_hashstr = sign_and_send_xtn("""\
+  - Hiss: Who wants to know??
+""",'id.2',blkno,parent_hashstr)
+
     system('tree -sa')
     time.sleep(600000)
     pass
