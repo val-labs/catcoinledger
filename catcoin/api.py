@@ -33,7 +33,7 @@ def verify_block(filename, blkno, parent, hashstr):
     return True
 
 def unsafe_store_block(filename, blkno, parent, hashstr):
-    print "unsafe_store_block"+repr((filename, blkno, parent, hashstr))
+    #print "unsafe_store_block"+repr((filename, blkno, parent, hashstr))
     direc = 's/b/%s/%s' % (blkno, parent)
     try:    os.makedirs(direc)
     except: pass
@@ -41,15 +41,15 @@ def unsafe_store_block(filename, blkno, parent, hashstr):
     return ('%s/%s' % (direc, hashstr))
 
 def store_block(filename, blkno, parent, hashstr):
-    print "store_block"+repr((filename, blkno, parent, hashstr))
+    #print "store_block"+repr((filename, blkno, parent, hashstr))
     if not verify_block(filename, blkno, parent, hashstr):
         raise Exception("Bad Block")
     return unsafe_store_block(filename, blkno, parent, hashstr)
 
 def store_and_forward_block(filename, blkno, parent, hashstr):
-    print "store_and_forward_block"+repr((filename, blkno, parent, hashstr))
+    #print "store_and_forward_block"+repr((filename, blkno, parent, hashstr))
     filename = store_block(filename, blkno, parent, hashstr)
-    print "FORWARD ", filename
+    #print "FORWARD ", filename
     peer2peer.pub('127.0.0.1:5454', 'blocks', filename)
     return filename
 
@@ -68,10 +68,11 @@ def init_chain(name, data=None):
     parent_hashstr = '0'*40
     inp_name = 'genesis.txt'
     with open(inp_name,'w') as fw:
-        fw.write(data or """
-Mee-OW!
-I am cat!
-Hear me roar!
+        fw.write(data or """\
+- Genesis: |
+    Mee-OW!
+    I am cat!
+    Hear me roar!
 """)
     hashstr = hashfile(inp_name)
     # do this otherwise saving the genesis block will be an error

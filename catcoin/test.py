@@ -4,19 +4,35 @@
 import os, sys, time, hashlib
 from catcoin.api import *
 
-def mine_block(blkno, parent_hashstr, pattern='msg1'):
-    bid = 'b/%s/%s' % (blkno, parent_hashstr)
-    with open('msgx','w') as fw:
-        fw.write('- - BID: %s\n' % bid)
+def mine_block(blkno, parent_hashstr, pattern):
+    system('echo "- - BID: b/%s/%s" >msgx' % (blkno, parent_hashstr))
     system('echo "  - Date:" `date +%Y-%M-%dT%H:%M:%S%z` >>msgx')
     system('cat %s >>msgx' % pattern)
-    hashstr = hashfile('msgx')
+    import random
+    h = hashlib.new('ripemd160')
+    with open('msgx') as f:
+        for line in f.readlines():
+            h.update( line )
+    hashstr = 'x'
+    n = 0
+    while not hashstr.startswith('00000'):
+        h2 = h.copy()
+        #r = '- Nonce: ' + str(random.random())
+        r = '- Nonce: %x\n' % n
+        n += 1
+        h2.update(r)
+        hashstr = h2.hexdigest()
+        #time.sleep(0.01)
+        pass
+    print hashstr
+    with open('msgx','a') as fw:
+        fw.write(r)
     store_and_forward_block('msgx', blkno, parent_hashstr, hashstr)
     return blkno+1, hashstr
 
 def sign_and_send_xtn(msg,kfile,blkno,parent_hashstr):
     sign_xtn(msg,kfile,'msg1')
-    return mine_block(blkno, parent_hashstr)
+    return mine_block(blkno, parent_hashstr,'msg1')
 
 def test():
     blkno, parent_hashstr = init_chain('test.data')
