@@ -1,14 +1,14 @@
-import os, sys, time, hashlib
 import peer2peer
+import os, sys, time, hashlib
 
-Ws = None
+Ws, Ws2 = None, None
 
 def connect_network(addr='localhost:5454'):
-    global Ws
+    global Ws, Ws2
     if addr.startswith(':'): addr = 'localhost' + addr
     ws = peer2peer.conn( addr )
-    if not Ws:
-        Ws = ws
+    if   not Ws:  Ws  = ws
+    elif not Ws2: Ws2 = ws
     return ws
 
 def hashfile(filename):

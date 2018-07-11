@@ -1,6 +1,7 @@
 """
 
 """
+from gevent import monkey; monkey.patch_all()
 import os, sys, time, hashlib
 from catcoin.api import *
 
@@ -21,8 +22,11 @@ def test():
 
     start_chain()
 
-    connect_network()
-    
+    connect_network() # make two connections
+    global ws2
+    ws2 = connect_network()
+    peer2peer.subscribev(ws2, ['blocks'])
+
     # let's create a new identity (or two)
     id1 = create_wallet('1')
 

@@ -1,3 +1,3 @@
 test:
 	echo TEST
-	cd .. ; python -m catcoin.test
+	cd .. ; python -um catcoin.test
