@@ -7,7 +7,8 @@ from catcoin.api import *
 def mine_block(blkno, parent_hashstr, pattern='msg1'):
     bid = 'b/%s/%s' % (blkno, parent_hashstr)
     with open('msgx','w') as fw:
-        fw.write('- %s\n' % bid)
+        fw.write('- - BID: %s\n' % bid)
+    system('echo "  - Date:" `date +%Y-%M-%dT%H:%M:%S%z` >>msgx')
     system('cat %s >>msgx' % pattern)
     hashstr = hashfile('msgx')
     store_and_forward_block('msgx', blkno, parent_hashstr, hashstr)

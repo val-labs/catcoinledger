@@ -56,7 +56,7 @@ def store_and_forward_block(filename, blkno, parent, hashstr):
 def sign_xtn(msg, keyfile, filename):
     filename0 = filename+'.inp'
     with open(filename0,'w') as fw:  fw.write(msg)
-    system('head -1<%s|cat - %s|pkcrypt sign %s -h >>%s'
+    system('head -1<%s|cat - %s|pkcrypt sign %s -h >%s'
            % (keyfile,filename0,keyfile,filename))
 
 def init_chain(name, data=None):
