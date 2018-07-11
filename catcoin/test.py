@@ -23,19 +23,20 @@ from catcoin.api import *
 
 def sign_and_send_xtn(msg,kfile,blkno,parent_hashstr):
     inp_name = 'msg1'
-    sign_xtn(msg,kfile,inp_name)
-    hashstr = hashfile(inp_name)
-    store_and_forward_block(inp_name, blkno, parent_hashstr, hashstr)
+    sign_xtn(msg,kfile, inp_name)
+    bid = 'b/%s/%s' % (blkno, parent_hashstr)
+    with open('msgx','w') as fw:
+        fw.write('- %s\n' % bid)
+    system('cat msg1 >>msgx')
+    hashstr = hashfile('msgx')
+    store_and_forward_block('msgx', blkno, parent_hashstr, hashstr)
     return blkno+1, hashstr
 
 def test():
-    print "START TEST"
     blkno, parent_hashstr = init_chain('test.data')
     start_chain()
-    time.sleep(3)
 
     # let's create a new identity (or two)
-    print "CREATE IDENTITY"
     system('pkcrypt genpair >id.1')
 
     blkno, parent_hashstr = sign_and_send_xtn("""\
@@ -43,7 +44,6 @@ def test():
   - Meow: Meow?  Is anyone out there?
 """,'id.1',blkno,parent_hashstr)
 
-    print "CREATE ANOTHER IDENTITY"
     system('pkcrypt genpair >id.2')
 
     blkno, parent_hashstr = sign_and_send_xtn("""\
@@ -59,8 +59,40 @@ def test():
   - Hiss: Who wants to know??
 """,'id.2',blkno,parent_hashstr)
 
+    blkno, parent_hashstr = sign_and_send_xtn("""\
+  - Hiss: Who wants to know2??
+""",'id.2',blkno,parent_hashstr)
+
+    blkno, parent_hashstr = sign_and_send_xtn("""\
+  - Hiss: Who wants to know3??
+""",'id.2',blkno,parent_hashstr)
+
+    blkno, parent_hashstr = sign_and_send_xtn("""\
+  - Hiss: Who wants to know4??
+""",'id.2',blkno,parent_hashstr)
+
+    blkno, parent_hashstr = sign_and_send_xtn("""\
+  - Hiss: Who wants to know5??
+""",'id.2',blkno,parent_hashstr)
+
+    blkno, parent_hashstr = sign_and_send_xtn("""\
+  - Hiss: Who wants to know6??
+""",'id.2',blkno,parent_hashstr)
+
+    blkno, parent_hashstr = sign_and_send_xtn("""\
+  - Hiss: Who wants to know7??
+""",'id.2',blkno,parent_hashstr)
+
+    blkno, parent_hashstr = sign_and_send_xtn("""\
+  - Hiss: Who wants to know8??
+""",'id.2',blkno,parent_hashstr)
+
+    blkno, parent_hashstr = sign_and_send_xtn("""\
+  - Hiss: Who wants to know9??
+""",'id.2',blkno,parent_hashstr)
+
     system('tree -sa')
-    time.sleep(600000)
+    #time.sleep(600000)
     pass
 
 if __name__=='__main__': test()

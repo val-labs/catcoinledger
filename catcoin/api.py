@@ -50,7 +50,7 @@ def store_and_forward_block(filename, blkno, parent, hashstr):
     print "store_and_forward_block"+repr((filename, blkno, parent, hashstr))
     filename = store_block(filename, blkno, parent, hashstr)
     print "FORWARD ", filename
-    peer2peer.pub(':5454', 'blocks', filename)
+    peer2peer.pub('127.0.0.1:5454', 'blocks', filename)
     return filename
 
 def sign_xtn(msg, keyfile, filename):
@@ -60,13 +60,10 @@ def sign_xtn(msg, keyfile, filename):
            % (keyfile,filename0,keyfile,filename))
 
 def init_chain(name, data=None):
-    print "START CHAIN"
     mkdir(name)
     os.chdir(name)
-    print "CREATE WALLET AREA"
     mkdir('wallets')
     mkdir('s/b')
-    print "CREATE GENESIS BLOCK"
     blkno = 0
     parent_hashstr = '0'*40
     inp_name = 'genesis.txt'
