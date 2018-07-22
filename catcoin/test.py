@@ -88,7 +88,7 @@ def test():
 """,id2,blkno,hashstr)
 
     system('tree -sa')
-    #time.sleep(600000)
+    time.sleep(600000)
     pass
 
 if __name__=='__main__': test()

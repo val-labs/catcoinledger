@@ -96,6 +96,7 @@ def init_chain(name, data):
 
 def start_chain():
     print("Starting WebServer...")
+    os.system('pwd')
     pid = spawn('PYTHONPATH=.. python -mws','pid1', '.ws')
     print("server pid =", pid)
 
