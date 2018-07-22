@@ -10,6 +10,7 @@ def sign_and_send_xtn(msg,kfile,blkno,hashstr):
     return mine_block(blkno, hashstr,'msg1')
 
 def create_wallet(nick,dir='wallets/'):
+    import pkcrypt
     system('pkcrypt genpair >%sid.%s' % (dir,nick))
     system('chmod 600 %sid.%s' % (dir,nick))
     return '%sid.%s' % (dir,nick)
@@ -18,8 +19,12 @@ def test():
     # let's create the root identity
     root = create_wallet('root','')
 
-    blkno, hashstr = init_chain('test.data')
-
+    blkno, hashstr = init_chain('test.data', """\
+- Genesis: |
+    Mee-OW!
+    I am cat!
+    Hear me roar!
+""")
     start_chain()
 
     connect_network() # make two connections

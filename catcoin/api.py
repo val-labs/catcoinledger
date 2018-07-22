@@ -3,9 +3,9 @@ import os, sys, time, hashlib
 
 Ws, Ws2 = None, None
 
-def connect_network(addr='localhost:5454'):
+def connect_network(addr='127.0.0.1:5454'):
     global Ws, Ws2
-    if addr.startswith(':'): addr = 'localhost' + addr
+    if addr.startswith(':'): addr = '127.0.0.1' + addr
     ws = peer2peer.conn( addr )
     if   not Ws:  Ws  = ws
     elif not Ws2: Ws2 = ws
@@ -28,7 +28,7 @@ def mkdir(path):
 def spawn(cmd, filename='pid', suffix=''):
     try:
         suffix = " 1>logs/stdout%s 2>logs/stderr%s & echo $$ >" % (suffix,suffix)
-        print os.system(cmd + suffix + filename)
+        print("os.system", suffix, os.system(cmd + suffix + filename))
         return int(open(filename).read())
     finally:
         os.remove(filename)
@@ -79,7 +79,7 @@ def mine_block(blkno, parent_hashstr, pattern, difficulty_prefix='0'):
     system('rm '+pattern)
     return blkno+1, hashstr
 
-def init_chain(name, data=None):
+def init_chain(name, data):
     mkdir(name)
     os.chdir(name)
     mkdir('logs')
@@ -90,24 +90,17 @@ def init_chain(name, data=None):
     inp_name = 'genesis.txt'
     system('mv ../id.root wallets')
     system('head -1 <wallets/id.root >genesis.txt')
-    with open(inp_name,'a') as fw:
-        fw.write(data or """\
-- Genesis: |
-    Mee-OW!
-    I am cat!
-    Hear me roar!
-""")
+    with open(inp_name,'a') as fw: fw.write(data)
     ret = mine_block(0,parent_hashstr,inp_name)
     return ret
 
 def start_chain():
-    print "Starting WebServer..."
+    print("Starting WebServer...")
     pid = spawn('PYTHONPATH=.. python -mws','pid1', '.ws')
-    print "server pid =", pid
+    print("server pid =", pid)
 
-    print "Starting Peer2PeerServer..."
-    pid2 = spawn('PYTHONPATH=.. python '+
-                 '../peer2peer/peer2peer.py serve --port 5454', 'pid2', '.p2p')
-    print "server pid =", pid2
+    print("Starting Peer2PeerServer...")
+    pid2 = spawn('peer2peer.py serve --port 5454', 'pid2', '.p2p')
+    print("server pid =", pid2)
     time.sleep(0.2)
     return [pid, pid2]
