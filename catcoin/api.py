@@ -105,3 +105,14 @@ def start_chain():
     print("server pid =", pid2)
     time.sleep(0.2)
     return [pid, pid2]
+
+def sign_and_send_xtn(msg,kfile,blkno,hashstr):
+    sign_xtn(msg,kfile,'msg1')
+    return mine_block(blkno, hashstr,'msg1')
+
+def create_wallet(nick,dir='wallets/'):
+    import pkcrypt
+    system('pkcrypt genpair >%sid.%s' % (dir,nick))
+    system('chmod 600 %sid.%s' % (dir,nick))
+    return '%sid.%s' % (dir,nick)
+
