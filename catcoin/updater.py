@@ -1,5 +1,30 @@
 import os, sys, time, requests
 
+def download_block(next,blox):
+    return requests.get("http://127.0.0.1:8080/s/b/%s/%s" % (next, blox)).text
+
+def download_block2(prev):
+    arr = prev.split('/')
+    arr[1] = str(int(arr[1])-1)
+    prev2 = '/'.join(arr)
+    text = requests.get("http://127.0.0.1:8080/s/%s" % (prev2)).text
+    return arr[-1], text
+
+def save_block(bid, data):
+    prev = data.split()[3]
+    os.system('mkdir -p s/' + prev)
+
+    fname = "./s/%s/%s" % (prev, bid)
+    with open(fname,'w') as f: f.write(data)
+    return prev
+
+def get_first_block_info():
+    longest = requests.get('http://127.0.0.1:8080/s/b/longest').json()
+    print "ITS %s" % (longest)
+    pblox  = requests.get("http://127.0.0.1:8080/s/b/%s/" % (longest)).text
+    kblox = requests.get("http://127.0.0.1:8080/s/b/%s/%s/" % (longest, pblox)).text
+    return longest, pblox, kblox
+
 print "UPDATER!!!!"
 
 print "HANG OUT AND LET EVERYTHING INIT FOR A BIT"
@@ -8,42 +33,26 @@ time.sleep(1)
 print "FIRST OF ALL, SYNC UP THE NODE"
 
 print "FIND LONGEST BLOCK"
-longest = requests.get('http://127.0.0.1:8080/s/b/longest').json()
-print "ITS %s" % (longest)
+bno, pbid, kbid = get_first_block_info()
+print repr((bno, pbid, kbid))
 
-blox  = requests.get("http://127.0.0.1:8080/s/b/%s/" % (longest)).text
-xblox = requests.get("http://127.0.0.1:8080/s/b/%s/%s/" % (longest, blox)).text
-yblox = requests.get("http://127.0.0.1:8080/s/b/%s/%s/%s" % (longest, blox, xblox)).text
-
-print("---")
-#print("- %s/%s/%s"%(longest,blox,xblox))
-print("- %s"%(xblox))
-print(yblox+"---")
-
-fxblox = "./s/b/%s/%s/" % (longest, blox)
-os.system('mkdir -p ' + fxblox)
-
-fyblox = "./s/b/%s/%s/%s" % (longest, blox, xblox)
-with open(fyblox,'w') as f: f.write(yblox)
-
-next = longest
+bdata = download_block(bno, kbid)
+print("---\n- %s\n%s---"%(kbid,bdata))
 
 print "DOWNLOAD EVERYTHING BACK TO THE GENESIS BLOCK"
 
-next -= 1
+while 1:
+    prev = save_block(kbid, bdata)
+    print "PREV ", prev
 
-zblox = requests.get("http://127.0.0.1:8080/s/b/%s/%s" % (next, blox)).text
-print "Z", next, blox
-print "Z", zblox
+    if prev.endswith('0000000000000000000000000000000000000000'):
+        print "XXXXXXXXXXXXX2"
+        break
 
-def save_block(prev, bid, data):
-    dname = "./s/%s/" % (prev)
-    os.system('mkdir -p ' + dname)
+    kbid, bdata = download_block2(prev)
+    print("---\n- %s\n%s---"%(kbid,bdata))
 
-    fname = "./s/%s/%s" % (prev, bid)
-    with open(fname,'w') as f: f.write(data)
-
-save_block('b/%s/%s'%(next,xblox), blox, zblox)
+    pass
 
 print "LA LA LA HANG OUT FOREVER"
 
