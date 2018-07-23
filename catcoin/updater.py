@@ -20,8 +20,8 @@ def save_block(bid, data):
 
 def get_first_block_info():
     longest = requests.get('http://127.0.0.1:8080/s/b/longest').json()
-    print "ITS %s" % (longest)
-    pblox  = requests.get("http://127.0.0.1:8080/s/b/%s/" % (longest)).text
+    #print "ITS %s" % (longest)
+    pblox = requests.get("http://127.0.0.1:8080/s/b/%s/" % (longest)).text
     kblox = requests.get("http://127.0.0.1:8080/s/b/%s/%s/" % (longest, pblox)).text
     return longest, pblox, kblox
 
@@ -37,11 +37,9 @@ bno, pbid, kbid = get_first_block_info()
 print repr((bno, pbid, kbid))
 
 bdata = download_block(bno, kbid)
-print("---\n- %s\n%s---"%(kbid,bdata))
-
-print "DOWNLOAD EVERYTHING BACK TO THE GENESIS BLOCK"
-
 while 1:
+    print("---\n- %s\n%s---"%(kbid,bdata))
+    
     prev = save_block(kbid, bdata)
     print "PREV ", prev
 
@@ -50,10 +48,10 @@ while 1:
         break
 
     kbid, bdata = download_block2(prev)
-    print("---\n- %s\n%s---"%(kbid,bdata))
-
     pass
 
-print "LA LA LA HANG OUT FOREVER"
+print "WE ARE SYNCED!!!!"
+
+print "How do we stay in sync?"
 
 time.sleep(36000000)
