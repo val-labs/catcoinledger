@@ -14,3 +14,8 @@ qwert:
 
 client:
 	python -um catcoin.node client
+
+clientx:
+	python -um catcoin.node client <client.convo
+
+

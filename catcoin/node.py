@@ -1,6 +1,9 @@
 from gevent import monkey; monkey.patch_all()
 import os, sys
 from catcoin.api import *
+import leveldb
+
+db = leveldb.LevelDB('./db')
 
 def erase(fname):
     fname = fname or 'default'
@@ -26,45 +29,41 @@ def load_wallet(fname, sfx='id.mainuser'):
 
 def read_msgs(ws):
     m1 = ws.receive()
-    if m1 is None:
-        return None, None, None
+    if m1 is None: return None, None, None
     m2 = ws.receive()
-    if m2 is None:
-        return None, None, None
+    if m2 is None: return None, None, None
     m3 = ws.receive()
-    if m3 is None:
-        return None, None, None
+    if m3 is None: return None, None, None
     return m1, int(m2), m3
     
-def prompt():
-    sys.stdout.write(">>")
-    sys.stdout.flush()
+def prompt(): sys.stdout.write(">>"); sys.stdout.flush()
 
-def meow(msg):
-    print("M", msg)
-
-def purr(msg):
-    print("P", msg)
-
-def hiss(msg):
-    print("H", msg)
+def meow(msg): peer2peer.sendv(['pub meow', '2', msg], ws1)
+def purr(msg): peer2peer.sendv(['pub purr', '2', msg], ws1)
+def hiss(msg): peer2peer.sendv(['pub hiss', '2', msg], ws1)
     
 def process_line(line):       
     print("LINE", repr(line))
     if   line.startswith('meow '): meow(line[5:].strip())
     elif line.startswith('purr '): purr(line[5:].strip())
     elif line.startswith('hiss '): hiss(line[5:].strip())
-    else:                          print(" ** BAD COMMAND **")
-        
+    else: print(" ** BAD COMMAND **")
+
+Connections = []
+    
 def client(fname):
     fname = fname or 'default'
     print("CLIENT", fname)
     print("CHDIR", fname)
     os.chdir(fname)
+    global wall
     wall = load_wallet(fname)
     print("WALLET", wall)
+    global ws1, ws2
     ws1 = connect_network(":9992") # make two connections
     ws2 = connect_network(":9992")
+    Connections.append(ws1)
+    Connections.append(ws2)
     print("ready for action")
     prompt()
     while 1:

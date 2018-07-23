@@ -1,3 +1,4 @@
 peer2peer: /usr/local/bin/peer2peer.py serve --port 9992
 web: ls -la ; pwd ; PYTHONPATH=.. python -mws 9994
 updater: PYTHONPATH=.. python -umcatcoin.updater
+dbdbm:   PYTHONPATH=.. python -umcatcoin.dbdmn
