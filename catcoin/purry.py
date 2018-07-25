@@ -8,7 +8,7 @@ def init():
 
 def cb(*a): print "CB", repr(a)
 
-def mmain(): main2('meow', cb)
+def mmain(): main2('purr', cb)
 
 if __name__ == "__main__":
     try: toolz.kill(PID_FNAME)
