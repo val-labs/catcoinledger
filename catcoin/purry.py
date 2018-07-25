@@ -13,8 +13,15 @@ def cb(msg):
     print "TRANSLATE PURR INTO A TRANSACTION NOW", msg
     msg2 = "  - Purr: %s\n" % msg
     catcoin.api.sign_xtn(msg2,'wallets/main','msg.purr')
-    print("="*80)
+    print("-"*80)
     os.system('cat msg.purr')
+    print("-"*80)
+    bno, hstr = 99, "2001"
+    bno, x = catcoin.api.mine_block(bno, hstr, "msg.purr")
+    print bno, x
+    print("="*80)
+    print "- %s/%s" % (bno, x)
+    os.system('cat msgx')
     print("="*80)
 
 def main():
