@@ -4,10 +4,15 @@ import time
 import os
 import sys
 import peer2peer
+import uuid
+
+_UUID = uuid.uuid4()
+UUID = str(_UUID)
 
 def connect():
     global Ps
     Ps = peer2peer.conn()
+    peer2peer.subscribe(Ps, UUID)
     return Ps
 
 def system(cmd):
@@ -62,3 +67,26 @@ def client_loop(callback,channel):
             pass
         print "AFTER"
 
+def info():
+    peer2peer.publish(Ps, "dbd", "%s get 50 longest-blockno" % UUID)
+    msgs = peer2peer.recv(Ps)
+    zz = int(msgs[2].split()[1])
+    peer2peer.publish(Ps, "dbd", "%s keys 51 b.%06d/ b.%06d/~" % (UUID, zz, zz))
+    msgs = peer2peer.recv(Ps)
+    return msgs[2].split()[1:]
+
+def cb2(msg2, fname):
+    arr2 = info()[0][2:].split('/')
+    sign_xtn(msg2,'wallets/main',fname)
+    with open(fname) as f: xtn = f.read()
+    xid = xtn.split('\n', 2)[0][6:]
+    peer2peer.publish(Ps, "dbd", "%s put 72 x.%s %s" % (UUID, xid, xtn))
+    msgs = peer2peer.recv(Ps)
+    peer2peer.publish(Ps, "dbd", "%s put 72 u.%s %s" % (UUID, xid, "1"))
+    msgs = peer2peer.recv(Ps)
+    peer2peer.publish(Ps, "xtn", xtn)
+    bno, x = mine_block(int(arr2[0]), arr2[1], fname)
+    blk = "- %s/%s\n%s" % (bno, x, open('msgx').read())
+    peer2peer.publish(Ps, "dbd", "%s put 52 b.%06d/%s %s" % (UUID, bno, x, blk))
+    msgs = peer2peer.recv(Ps)
+    peer2peer.publish(Ps, "blk", blk)

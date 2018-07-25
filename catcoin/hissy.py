@@ -7,15 +7,11 @@ def init():
     print "SERVE IT UP"
     catcoin.api.connect()
     print "CONNECTED"
-    pass
 
 def cb(msg):
     print "TRANSLATE HISS INTO A TRANSACTION NOW", msg
     msg2 = "  - Hiss: %s\n" % msg
-    catcoin.api.sign_xtn(msg2,'wallets/main','msg.hiss')
-    print("="*80)
-    os.system('cat msg.hiss')
-    print("="*80)
+    return catcoin.api.cb2(msg2, 'msg.hiss')
 
 def main():
     catcoin.api.client_loop(cb,'hiss')

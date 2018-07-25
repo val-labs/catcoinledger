@@ -6,3 +6,5 @@ hissy:     sleep 3 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/hissy.py -f
 meow:      sleep 4 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/meow.py "hello everyone1"
 hiss:      sleep 5 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/hiss.py "hello everyone2"
 purr:      sleep 6 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/purr.py "hello everyone3"
+blk:     sleep 3 ; PYTHONPATH=.. python -u ../peer2peer/peer2peer.py sub 127.0.0.1:8080/ blk
+xtn:     sleep 3 ; PYTHONPATH=.. python -u ../peer2peer/peer2peer.py sub 127.0.0.1:8080/ xtn

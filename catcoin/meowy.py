@@ -7,15 +7,13 @@ def init():
     print "SERVE IT UP"
     catcoin.api.connect()
     print "CONNECTED"
-    pass
 
 def cb(msg):
     print "TRANSLATE MEOW INTO A TRANSACTION NOW", msg
-    msg2 = "  - Meow: %s\n" % msg
-    catcoin.api.sign_xtn(msg2,'wallets/main','msg.meow')
-    print("="*80)
-    os.system('cat msg.meow')
-    print("="*80)
+    os.system('echo "  - Date:" `date -u +%Y-%M-%dT%H:%M:%SZ` >>date.meow')
+    dat = open('date.meow').read()
+    msg2 = dat + "  - Meow: %s\n" % msg
+    return catcoin.api.cb2(msg2, 'msg.meow')
 
 def main():
     catcoin.api.client_loop(cb,'meow')

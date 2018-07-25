@@ -1,4 +1,6 @@
+
 test:
-	cd .. ; python catcoin erase ;  python catcoin create ;  python catcoin start
+	cd .. ; sh bin/test.sh
+
 clean:
-	rm *.pyc
+	cd .. ; sh bin/clean.sh
