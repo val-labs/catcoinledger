@@ -8,7 +8,7 @@ import peer2peer
 def connect():
     global Ps
     Ps = peer2peer.conn()
-    pass
+    return Ps
 
 def system(cmd):
     if os.system(cmd): raise Exception("CMD ERR:" + cmd)

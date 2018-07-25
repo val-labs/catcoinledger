@@ -4,7 +4,7 @@ def create(genesis_filename):
     print "CREATEDB", genesis_filename
     data = open(genesis_filename).read()
     opendb()
-    getdb().Put("b.00000000.genesis",  data)
+    getdb().Put("b.000000/genesis",  data)
     getdb().Put("longest-blockno", "0")
     print "DAT", data
     pass
