@@ -1,5 +1,8 @@
 peer2peer: PYTHONPATH=.. python -u ../peer2peer/peer2peer.py serve
 bcdbd:     sleep 1 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/bcdbd.py -f
-meowy:     sleep 2 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/meowy.py -f
-purry:     sleep 2 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/purry.py -f
-hissy:     sleep 2 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/hissy.py -f
+meowy:     sleep 3 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/meowy.py -f
+purry:     sleep 3 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/purry.py -f
+hissy:     sleep 3 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/hissy.py -f
+meow:      sleep 4 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/meow.py "hello everyone1"
+hiss:      sleep 5 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/hiss.py "hello everyone2"
+purr:      sleep 6 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/purr.py "hello everyone3"

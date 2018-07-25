@@ -49,6 +49,9 @@ def store_block(filename, blkno, parent, hashstr):
     system('mv %s %s/%s' % (filename, direc, hashstr))
     return ('%s/%s' % (direc, hashstr))
 
+def forward_block(block):
+    peer2peer.sendv(['pub blocks', '2', block], Ws)
+
 def store_and_forward_block(filename, blkno, parent, hashstr):
     filename = store_block(filename, blkno, parent, hashstr)
     if Ws: peer2peer.sendv(['pub blocks', '2', open(filename).read()], Ws)
@@ -78,7 +81,7 @@ def mine_block(blkno, parent_hashstr, pattern, difficulty_prefix='0'):
     store_and_forward_block('msgx', blkno, parent_hashstr, hashstr)
     system('rm '+pattern)
     return blkno+1, hashstr
-
+'''
 def init_chain(name, data):
     mkdir(name)
     os.chdir(name)
@@ -105,8 +108,12 @@ def start_chain():
     print("server pid =", pid2)
     time.sleep(0.2)
     return [pid, pid2]
-
+'''
 def sign_and_send_xtn(msg,kfile,blkno,hashstr):
+    sign_xtn(msg,kfile,'msg1')
+    return mine_block(blkno, hashstr,'msg1')
+
+def sign_and_send_xtn2(msg,kfile,blkno,hashstr):
     sign_xtn(msg,kfile,'msg1')
     return mine_block(blkno, hashstr,'msg1')
 
