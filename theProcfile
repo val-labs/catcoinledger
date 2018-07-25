@@ -1,0 +1,3 @@
+peer2peer: PYTHONPATH=.. python -u ../peer2peer/peer2peer.py serve
+bcdbd:     sleep 1 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/bcdbd.py -f
+meowy:     sleep 1 ; PYTHONPATH=..:../peer2peer python -u ../catcoin/meowy.py -f

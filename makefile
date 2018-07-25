@@ -1,5 +1,5 @@
 
-test: clean
+test:
 	cd catcoin ; make test
 
 clean:
