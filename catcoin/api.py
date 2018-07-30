@@ -1,106 +1,285 @@
-import peer2peer
-import os, sys, time, hashlib
+from __future__ import print_function
+from gevent import monkey ; monkey.patch_all()
+import random
+import hashlib
+import traceback as tb
+import time
+import os
+import sys
+from catcoin import peer2peer
+import uuid
+import pkcrypt
+from datetime import datetime as dt
+import toolz
 
-Ws, Ws2 = None, None
+def hash_block(b):h=hashlib.new('ripemd160');h.update(b);return h.hexdigest()
 
-def connect_network(addr='127.0.0.1:5454'):
-    global Ws, Ws2
-    if addr.startswith(':'): addr = '127.0.0.1' + addr
-    ws = peer2peer.conn( addr )
-    if   not Ws:  Ws  = ws
-    elif not Ws2: Ws2 = ws
-    return ws
+_UUID = uuid.uuid4()
+UUID = str(_UUID)
 
-def hashfile(filename):
-    h = hashlib.new('ripemd160')
-    with open(filename) as f:
-        for line in f.readlines():
-            h.update( line )
-    return h.hexdigest()
+VK = pkcrypt.fload_vk('wallets/main')
+SK = pkcrypt.fload_sk('wallets/main')
+LINE1 = open('wallets/main').readline()
+NODE_ID = hash_block(LINE1)
 
-def mkdir(path):
+def connect():
+    global Ps
+    Ps = peer2peer.conn()
+    db_connect()
+    return Ps
+
+def xconnect():
+    global Xps
+    Xps = peer2peer.conn('v.ccl.io:8080')
+    xdb_connect()
+    return Xps
+
+def xdb_connect():
+    global XDb
+    XDb = peer2peer.conn('v.ccl.io:8080')
+    peer2peer.subscribe(XDb, UUID)
+    return XDb
+def _xdb_ret():
+    msgs = peer2peer.recv(XDb)
+    try: return msgs[2].split(' ', 1)[1]
+    except IndexError: return ''
+def xdb_keys(k):
+    peer2peer.publish(XDb, "dbd", "%s keys 51 %s %s~" % (UUID, k, k))
+    return _xdb_ret()
+def xdb_put(k,v):
+    peer2peer.publish(XDb, "dbd", "%s put 52 %s %s" % (UUID, k, v))
+    return _xdb_ret()
+def xdb_get(k):
+    peer2peer.publish(XDb, "dbd", "%s get 53 %s" % (UUID, k))
+    return _xdb_ret()
+
+def db_connect():
+    global Db
+    Db = peer2peer.conn()
+    peer2peer.subscribe(Db, UUID)
+    return Db
+def _db_ret():
+    msgs = peer2peer.recv(Db)
+    #print("MSGS", msgs)
     try:
-        os.makedirs(path)
-    except:
-        os.system('rm -fr '+ path)
-        os.makedirs(path)
-        
-def spawn(cmd, filename='pid', suffix=''):
-    try:
-        suffix = " 1>logs/stdout%s 2>logs/stderr%s & echo $$ >" % (suffix,suffix)
-        print("os.system", suffix, os.system(cmd + suffix + filename))
-        return int(open(filename).read())
-    finally:
-        os.remove(filename)
+        ret = msgs[2].split(' ', 1)[1]
+        time.sleep(0.1)
+        return ret
+    except IndexError: return ''
+def db_keys(k):
+    #print("DBK:"+k)
+    peer2peer.publish(Db, "dbd", "%s keys 51k %s %s~" % (UUID, k, k))
+    return _db_ret()
+def db_put(k,v):
+    #print("DBP:"+k)
+    peer2peer.publish(Db, "dbd", "%s put 52p %s %s" % (UUID, k, v))
+    return _db_ret()
+def db_get(k):
+    #print("DBG:"+k)
+    peer2peer.publish(Db, "dbd", "%s get 53g %s" % (UUID, k))
+    return _db_ret()
 
-def system(cmd):
-    if os.system(cmd): raise Exception("CMD ERR:" + cmd)
+def xpublish(ch, msg): return peer2peer.publish(Xps, ch, msg)
+def xsubscribe(ch):    return peer2peer.subscribe(Xps, ch)
 
-def verify_block(filename, blkno, parent, hashstr):
-    "verify block: does this guy's story check out?"
+def publish(ch, msg): return peer2peer.publish(Ps, ch, msg)
+def subscribe(ch):    return peer2peer.subscribe(Ps, ch)
+
+class SignatureError(Exception): pass
+def sign(msg):     return pkcrypt.sig2str(pkcrypt.sign_with(SK, msg))+'\n'
+def verify(sig_line, msg):
+    sig = pkcrypt.str2sig(sig_line.split()[-1])
+    vline = msg.split('\n', 1)[0]
+    nvk = pkcrypt.str2vk( vline.split()[-1] )
+    if pkcrypt.invalid_sig(nvk, sig, msg):
+        print("NOT VALID: MISMATCH")
+        raise SignatureError
     return True
+def verifyxtn(blk):
+    arr = blk.split('\n', 1)
+    verify(arr[0]+'\n', arr[1])
+    return blk
+def verifyblk(blk):
+    arr = blk.split('\n')
+    verify(arr[0], '\n'.join(arr[1:-2])+'\n')
+    return blk
 
-def store_block(filename, blkno, parent, hashstr):
-    if not verify_block(filename, blkno, parent, hashstr):
-        raise Exception("Bad Block")
-    direc = 's/b/%s/%s' % (blkno, parent)
-    try:    os.makedirs(direc)
-    except: pass
-    system('mv %s %s/%s' % (filename, direc, hashstr))
-    return ('%s/%s' % (direc, hashstr))
+def get_iso_date():   return dt.utcnow().isoformat().split('.')[0] + 'Z'
+def get_date_line():  return '  - Date: %s\n' % get_iso_date()
 
-def store_and_forward_block(filename, blkno, parent, hashstr):
-    filename = store_block(filename, blkno, parent, hashstr)
-    if Ws: peer2peer.sendv(['pub blocks', '2', open(filename).read()], Ws)
-    return filename
+global Flag ; Flag = True
+def setFlag():    global Flag ; Flag = True
+def clearFlag():    global Flag; Flag = False
 
-def sign_xtn(msg, keyfile, filename):
-    filename0 = filename+'.inp'
-    with open(filename0,'w') as fw:  fw.write(msg)
-    system('head -1<%s|cat - %s|pkcrypt sign %s -h >%s'
-           % (keyfile,filename0,keyfile,filename))
-    system('rm ' + filename0)
-
-def mine_block(blkno, parent_hashstr, pattern, difficulty_prefix='0'):
-    system('echo "- - BID: b/%s/%s" >msgx' % (blkno, parent_hashstr))
-    system('echo "  - Date:" `date -u +%Y-%M-%dT%H:%M:%SZ` >>msgx')
-    system('cat %s >>msgx' % pattern)
+def mine_block(blkno, parent_hashstr, data, difficulty_prefix='0'):
+    setFlag()
+    p = "  - Prev: %s/%s\n" % (blkno, parent_hashstr)
+    print("  - Prev: %s/%s" % (blkno, parent_hashstr))
+    d = get_date_line()
+    msgx = LINE1 + d + p + data
+    S = sign(msgx)
+    verify(S, msgx)
     h = hashlib.new('ripemd160')
-    with open('msgx') as f:
-        for line in f.readlines():
-            h.update( line )
+    h.update( S )
+    h.update( msgx )
     n = 0; hashstr = 'x'
+    n = int(random.random()*1000000)
     while not hashstr.startswith(difficulty_prefix):
+        if not Flag: return blkno, parent_hashstr, '', ''
         n += 1; h2 = h.copy(); r = '- Nonce: %x\n' % n
         h2.update(r); hashstr = h2.hexdigest()
-    with open('msgx','a') as fw:
-        fw.write(r)
-    store_and_forward_block('msgx', blkno, parent_hashstr, hashstr)
-    system('rm '+pattern)
-    return blkno+1, hashstr
+        pass
+    return blkno+1, hashstr, S+msgx, r
 
-def init_chain(name, data):
-    mkdir(name)
-    os.chdir(name)
-    mkdir('logs')
-    mkdir('wallets')
-    mkdir('s/b')
-    blkno = 0
-    parent_hashstr = '0'*40
-    inp_name = 'genesis.txt'
-    system('mv ../id.root wallets')
-    system('head -1 <wallets/id.root >genesis.txt')
-    with open(inp_name,'a') as fw: fw.write(data)
-    ret = mine_block(0,parent_hashstr,inp_name)
+def scrape_xid(msg):
+    return 'x.' + msg.split('\n',1)[0][6:]
+
+def find_prev_bid2(msg):
+    for x in msg.split('\n'):
+        if x.startswith('  - Prev: '):
+            arr = x[10:].split('/')
+            return int(arr[0], 10), arr[1]
+    return None, None
+
+def find_bid2(msg):
+    for x in msg.split('\n'):
+        if x.startswith('  - Prev: '):
+            arr = x[10:].split('/')
+            bno = int(x[10:].split('/')[0])
+            return int(arr[0], 10)+1, hash_block(msg)
+    return None, None
+
+def find_prev_bid(msg):  return mk_bid(*find_prev_bid2(msg))
+def find_bid(msg):       return mk_bid(*find_bid2(msg))
+
+def mk_bid(bno, hash_str):
+    return "b.%06d/%s" % (bno, hash_str)
+
+def info():
+    longest = int(db_get('longest-blockno'))
+    k = "b.%06d/" % longest
+    keys = db_keys(k)
+    ret = keys.split(' ', 1)[0]
     return ret
+    
+def xinfo():
+    longest = int(xdb_get('longest-blockno'))
+    k = "b.%06d/" % longest
+    keys = xdb_keys(k)
+    ret = keys.split(' ', 1)[0]
+    return ret
+   
+def info2(i = None):
+    i = i or info()
+    arr = i[2:].split('/')
+    n = int(arr[0], 10)
+    return n, arr[1]
 
-def start_chain():
-    print("Starting WebServer...")
-    pid = spawn('PYTHONPATH=.. python -mws','pid1', '.ws')
-    print("server pid =", pid)
+def xinfo2(): return info2(xinfo())
 
-    print("Starting Peer2PeerServer...")
-    pid2 = spawn('peer2peer.py serve --port 5454', 'pid2', '.p2p')
-    print("server pid =", pid2)
-    time.sleep(0.2)
-    return [pid, pid2]
+def client_loop(callback,channel,idle=None):
+    import socket
+
+    def do_idle():
+        if idle: idle()
+        else:
+            print("TIMEOUT")
+            tb.print_exc()
+            time.sleep(1)
+
+    def do_error():
+        tb.print_exc(); time.sleep(1)
+        try: connect()
+        except: print("ERR2"); tb.print_exc()
+
+    while 1:
+        try:
+            peer2peer.subscribe(Ps, channel)
+            while 1:
+                msgs = peer2peer.recv(Ps)
+                callback(msgs[2])
+                time.sleep(0.2)
+        except peer2peer.WebSocketTimeoutException:
+            do_idle()
+        except socket.error, e:
+            if e.errno == 35: do_idle()
+            else:             do_error()
+        except Exception, e:
+            do_error()
+
+def sync(msg): publish('sync', msg)
+def meow(msg): publish('meow', msg)
+def hiss(msg): publish('hiss', msg)
+def purr(msg): publish('purr', msg)
+
+def block_iter(msg):
+    return ('-%s\n'%x for x in msg.split('\n-')[1:-1])
+
+def put_block(msg):
+    bid = find_bid(msg)
+    if db_get(bid):
+        print("Tossing old Blk", bid)
+        return
+    verifyblk(msg)
+    oarr = [verifyxtn(xtn) for xtn in block_iter(msg)]
+
+    print("Saving new Blk", bid)
+    db_put(bid, msg)
+    nbno = int(bid[2:].split('/')[0])
+    obno = int(db_get('longest-blockno'))
+    if nbno > obno:
+        print("Update Longest Chain to", nbno)
+        db_put('longest-blockno', str(nbno))
+        pass
+    
+    for v in oarr: db_put(scrape_xid(v), v)
+    return 1
+
+def scan_blk(nbid, callback):
+    print("SCAN", nbid)
+    nblk = db_get(nbid)
+    bno, hash = find_prev_bid2(nblk)
+    bid = mk_bid(bno, hash)
+    print(bno, hash, bid)
+    for xtn in block_iter(nblk):
+        callback(xtn)
+    if not bno:
+        print("WE GOT TO THE BEGINNING WERE DONE")
+        return
+    scan_blk(bid, callback)
+    pass
+
+def sync_blk(nbid):
+    print("SYNC", nbid)
+    nblk = xdb_get(nbid)
+    print(nblk)
+    print("verify it")
+    verifyblk(nblk)
+    print(find_bid(nblk))
+    bno, hash = find_prev_bid2(nblk)
+    bid = mk_bid(bno, hash)
+    print(bno, hash, bid)
+    put_block(nblk)
+    if not bno:
+        print("WE GOT TO THE BEGINNING WERE DONE")
+        return
+    sync_blk(bid)
+    pass
+
+def sync_maybe():
+    inf = info2()
+    xinf = xinfo2()
+    if xinf[0] > inf[0]:
+        sync_blk(mk_bid(*xinf))
+        return True
+    print("UP TO DATE")
+    return False
+
+def create_and_publish_xtn(msg):
+    print("TRANSLATE INTO A TRANSACTION NOW", msg)
+    msg = "%s  - %s" % (get_date_line(), msg)
+    msg1 = LINE1+msg
+    qmsg = sign(msg1)
+    smsg = qmsg + msg1
+    verifyxtn(smsg)
+    publish("xtn", smsg)

@@ -1,0 +1,16 @@
+
+- make this install like a dream
+
+- scan only goes backwards, is there a forward filter?
+
+- add in a bot to post based on fortunes
+
+- post scripts, maybe python?
+
+- the mechanism for culling transactions is awful
+
+- peer2peer is actually centralized for now, due to low traffic
+  - "I'm the book" - from soylent green
+
+- set up seperate networks for test and prod
+
